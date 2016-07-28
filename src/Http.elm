@@ -1,7 +1,9 @@
 module Http exposing
   ( getString, get, post, send
   , url, uriEncode, uriDecode
+  , contentType
   , Request
+  , RequestHeader
   , Body, empty, string, multipart
   , Data, stringData
   , Settings, defaultSettings
@@ -22,7 +24,7 @@ module Http exposing
 @docs Body, empty, string, multipart, Data, stringData
 
 # Arbitrary Requests
-@docs send, Request, Settings, defaultSettings
+@docs send, Request, Settings, defaultSettings, RequestHeader, contentType
 
 # Responses
 @docs Response, Value, fromJson, RawError
@@ -89,6 +91,11 @@ uriDecode =
   Native.Http.uriDecode
 
 
+{-| Represents a List of Tuples for specifying Http request headers.
+-}
+type alias RequestHeader = List (String, String)
+
+
 {-| Fully specify the request you want to send. For example, if you want to
 send a request between domains (CORS request) you will need to specify some
 headers manually.
@@ -107,7 +114,7 @@ headers manually.
 -}
 type alias Request =
     { verb : String
-    , headers : List (String, String)
+    , headers : RequestHeader
     , url : String
     , body : Body
     }
@@ -393,19 +400,26 @@ specify how to decode the response with [a JSON decoder][json].
 
     hats : Task Error (List String)
     hats =
-        post (list string) "http://example.com/hat-categories.json" empty
+        post (list string) "http://example.com/hat-categories.json" [] empty
 
 -}
-post : Json.Decoder value -> String -> Body -> Task Error value
-post decoder url body =
+post : Json.Decoder value -> String -> RequestHeader -> Body -> Task Error value
+post decoder url headers body =
   let request =
         { verb = "POST"
-        , headers = []
+        , headers = headers
         , url = url
         , body = body
         }
   in
       fromJson decoder (send defaultSettings request)
+
+
+{-| Make a `RequestHeader` that contains the Content-Type header
+-}
+contentType : String -> RequestHeader
+contentType type' =
+  [("Content-Type", type')]
 
 
 {-| Turn a `Response` into an Elm value that is easier to deal with. Helpful
