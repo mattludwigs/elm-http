@@ -415,7 +415,7 @@ post decoder url headers body =
       fromJson decoder (send defaultSettings request)
 
 
-{-| Make a `RequestHeader` that contains the Content-Type header
+{-| Make a `RequestHeader` that contains the Content-Type value
 -}
 contentType : String -> RequestHeader
 contentType type' =
